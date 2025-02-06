@@ -3,11 +3,6 @@ set -e  # Exit on errors
 set -u  # Treat unset variables as an error
 set -o pipefail  # Catch errors in pipelines
 
-# Define external storage location
-MOUNT="/dev/sda1"
-EXTERNAL_STORAGE="$MOUNT/NSA SECRETS"
-DEBIAN_FILES="$EXTERNAL_STORAGE/debian"
-
 # Fix NVIDIA issues first
 echo "==> Updating system with NVIDIA fixes & installing essential packages..."
 sudo apt update && apt upgrade -y
@@ -28,17 +23,17 @@ sudo apt -t bookworm-backports install -y \
 echo "==> Configuring audio..."
 
 # Ensure latest firmware for Intel Xe graphics is in place
-if [ -d "debian/xe" ]; then
+if [ -d "xe" ]; then
     echo "==> Copying Intel Xe firmware..."
-    sudo cp -r "debian/xe/"* /lib/firmware/xe/
+    sudo cp -r "xe/"* /lib/firmware/xe/
 fi
 sudo update-initramfs -u
 
     
 # Install additional sound firmware
-if [ -f "debian/firmware-sof-signed_2024.09.2-1_all.deb" ]; then
+if [ -f "firmware-sof-signed_2024.09.2-1_all.deb" ]; then
     echo "==> Installing SOF firmware..."
-    sudo dpkg -i "debian/firmware-sof-signed_2024.09.2-1_all.deb" || apt --fix-broken install -y
+    sudo dpkg -i "firmware-sof-signed_2024.09.2-1_all.deb" || apt --fix-broken install -y
 fi
 
 # Finished!
