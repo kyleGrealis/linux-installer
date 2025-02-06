@@ -25,7 +25,11 @@ else
 fi
 
 echo "==> Copying other dot files to home directory..."
-cp LinuxSetup/{.bash_aliases,.bashrc,.gitconfig,.gitignore,.Rprofile} ~
+cp bash_aliases ~/.bash_aliases
+cp bashrc ~/.bashrc
+cp gitconfig ~/.gitconfig
+cp gitignore ~/.gitignore
+cp Rprofile ~/.Rprofile
 echo "==> Activating bash aliases!"
 
 #=================================================================
@@ -113,6 +117,7 @@ sudo make install || {
 
 # Verify installation
 echo "==> Verifying R installation..."
+# Grant write permissions to directory to avoid prompt
 sudo chown -R $USER:$USER /usr/local/lib/R
 sudo chmod -R 755 /usr/local/lib/R
 
@@ -126,26 +131,17 @@ R --version || {
 #=================================================================
 echo "==> Downloading R package list..."
 
-echo "==> Installing R packages..."
-Rscript ~/packages-i-use.R || {
-    echo "ERROR: R package installation failed"
-    echo "Note: Some package failures are normal and can be addressed later"
-}
-
-if wget -q --show-progress --retry-connrefused --waitretry=5 \
-	 https://raw.githubusercontent.com/kyleGrealis/r-accessories/refs/heads/main/packages-i-use.R -O ~/packages-i-use.R; then
-    echo "==> Installing R packages..."
-    Rscript ~/packages-i-use.R || {
-        echo "ERROR: R package installation failed"
-        echo "Note: Some package failures are normal and can be addressed later"
-    }
+if [ -f packages-i-use.R ]; then
+    Rscript packages-i-use.R || {
+        echo "ERROR: R package file is missing or a mess!"
+	echo "Installing minimal packages now..."
+	sudo R -e "install.packages(c('remotes','devtools','tidyverse'), repos='https://cloud.r-project.org')" || {
+	    echo "Can't win 'em all... you have to install them yourself"
+        }
 else
-    echo "ERROR: Failed to download R package list"
-    echo "Installing minimal R packages..."
-    sudo R -e "install.packages(c('remotes','devtools','tidyverse'), repos='https://cloud.r-project.org')" || {
-	echo "Ooops... you have to run that yourself"
-    }
+    echo "ERROR: R package file is missing"
 fi
+
 
 if wget --show-progress --retry-connrefused --waitretry=5 \
        	-O ~/Downloads/quarto-latest.deb \
